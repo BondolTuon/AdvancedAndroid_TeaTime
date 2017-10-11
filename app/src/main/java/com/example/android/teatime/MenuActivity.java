@@ -18,30 +18,42 @@ package com.example.android.teatime;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.support.annotation.Nullable;
+import android.support.test.espresso.IdlingResource;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.GridView;
 
+import com.example.android.teatime.IdlingResource.SimpleIdlingResource;
 import com.example.android.teatime.model.Tea;
 
 import java.util.ArrayList;
 
 // TODO (1) Implement ImageDownloader.DelayerCallback
-public class MenuActivity extends AppCompatActivity {
+public class MenuActivity extends AppCompatActivity implements ImageDownloader.DelayerCallback {
 
     Intent mTeaIntent;
 
     public final static String EXTRA_TEA_NAME = "com.example.android.teatime.EXTRA_TEA_NAME";
 
     // TODO (2) Add a SimpleIdlingResource variable that will be null in production
+    @Nullable
+    private SimpleIdlingResource mSimpleIdlingResource;
 
     /**
      * TODO (3) Create a method that returns the IdlingResource variable. It will
      * instantiate a new instance of SimpleIdlingResource if the IdlingResource is null.
      * This method will only be called from test.
      */
+
+    public IdlingResource getIdlingResource(){
+        if(mSimpleIdlingResource == null){
+            mSimpleIdlingResource = new SimpleIdlingResource();
+        }
+        return mSimpleIdlingResource;
+    }
 
 
     /**
@@ -64,6 +76,8 @@ public class MenuActivity extends AppCompatActivity {
         Toolbar menuToolbar = (Toolbar) findViewById(R.id.menu_toolbar);
         setSupportActionBar(menuToolbar);
         getSupportActionBar().setTitle(getString(R.string.menu_title));
+
+        getIdlingResource();
 
         // Create an ArrayList of teas
         final ArrayList<Tea> teas = new ArrayList<>();
@@ -94,5 +108,16 @@ public class MenuActivity extends AppCompatActivity {
                 startActivity(mTeaIntent);
             }
         });
+    }
+
+    @Override
+    protected void onStart() {
+        super.onStart();
+        ImageDownloader.downloadImage(this, MenuActivity.this, mSimpleIdlingResource);
+    }
+
+    @Override
+    public void onDone(ArrayList<Tea> teas) {
+
     }
 }
